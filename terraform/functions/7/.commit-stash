@@ -1,28 +1,17 @@
-terraform.dev-202601012002.20.functions.7
+terraform.dev-202601012012.49.functions.7
 
-test(terraform): document string template type coercion edge case
+test(terraform/functions): change hash test to plan command
 
-Adds example 7 demonstrating an unexpected behavior in Terraform/OpenTofu
-where string templates `"${var.number}"` preserve the original type
-rather than converting to string. A numeric variable interpolated alone
-in a string template remains a number (5 == "${var.number}"), but
-concatenation with other text forces string conversion
-("instance-5" == "instance-${var.number}").
+The hash_test was using `command = apply` which actually modifies
+infrastructure state, but this test only validates the output of
+the `filesha256` function. Tests that merely verify computed values
+don't require applying changes to infrastructure.
 
-This builds on the comprehensive function examples from commit ff3406d,
-adding a seventh category focused on type conversion pitfalls. Unlike
-examples 1-6 which demonstrate expected function behavior, this example
-warns about a subtle edge case that can cause hard-to-debug type
-mismatch errors if code lacks proper unit test coverage.
+Changed to `command = plan` which evaluates functions and variables
+without side effects. This makes the test faster and safer to run
+in CI environments where apply operations could be restricted or
+require additional permissions.
 
-The test suite validates three key behaviors:
-- Bare numeric interpolation preserves number type (5 == "${var.default}")
-- Explicit tostring() ensures string conversion (tostring(5) == "5")
-- String concatenation forces automatic coercion ("instance-${5}" is string)
-- Boolean values exhibit identical coercion behavior
-
-Recommends using explicit tostring() in critical path code to prevent
-type confusion bugs. The README links to OpenTofu documentation on type
-systems and conversion rules for developers who need deeper understanding
-of the evaluation semantics.
+Also fixes typo in README.md where "edge cases" was corrupted to
+"edge ses".
 
